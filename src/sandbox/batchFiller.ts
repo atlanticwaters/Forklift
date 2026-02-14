@@ -122,11 +122,11 @@ export async function fillPod(
   await setTextContent(pod, LAYER_NAMES.BUTTON_TITLE, fields.buttonLabel);
 
   // ── Images (last since they're the heaviest operations) ──
-  if (fields.imageBytes) {
-    await setHeroImageFill(pod, fields.imageBytes);
+  if (fields.imageUrl) {
+    await setHeroImageFill(pod, fields.imageUrl);
   }
-  if (fields.thumbnailByteArrays && fields.thumbnailByteArrays.length > 0) {
-    await setThumbnailFills(pod, fields.thumbnailByteArrays);
+  if (fields.thumbnailUrls && fields.thumbnailUrls.length > 0) {
+    await setThumbnailFills(pod, fields.thumbnailUrls);
   }
 }
 

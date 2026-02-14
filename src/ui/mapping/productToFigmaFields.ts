@@ -1,6 +1,5 @@
 import type { CatalogProduct, ProductPodFields } from "../../shared/types";
 import { ratingToStarFills } from "../../sandbox/starRating";
-import { fetchImageBytes } from "../api/client";
 
 /** Max number of SKU thumbnail slots in the Product Pod */
 const MAX_THUMBNAILS = 5;
@@ -12,42 +11,22 @@ const MAX_THUMBNAILS = 5;
 export async function mapProductToFields(
   product: CatalogProduct
 ): Promise<ProductPodFields> {
-  // Fetch hero image bytes from the medium/large image URL
-  let imageBytes: number[] | null = null;
-  const heroUrl =
-    product.images?.medium || product.images?.large || product.images?.primary;
-  if (heroUrl) {
-    try {
-      imageBytes = await fetchImageBytes(heroUrl);
-    } catch {
-      // Hero image fetch failed — continue without image
-    }
-  }
+  // Resolve hero image URL (prefer medium > large > primary)
+  const imageUrl =
+    product.images?.medium || product.images?.large || product.images?.primary || null;
 
-  // Fetch gallery thumbnail bytes (up to 5, using thumbnail-sized URLs)
-  const thumbnailByteArrays: Array<number[]> = [];
-  const gallery = product.images?.gallery || [];
   // Build thumbnail URLs: prefer gallery images, fall back to primary thumbnail
-  const thumbUrls: string[] = [];
+  const thumbnailUrls: string[] = [];
   if (product.images?.thumbnail) {
-    thumbUrls.push(product.images.thumbnail);
+    thumbnailUrls.push(product.images.thumbnail);
   }
+  const gallery = product.images?.gallery || [];
   for (const url of gallery) {
-    if (thumbUrls.length >= MAX_THUMBNAILS) break;
+    if (thumbnailUrls.length >= MAX_THUMBNAILS) break;
     // Convert gallery 600px URLs to 100px thumbnails for smaller transfer
     const thumbUrl = url.replace(/_600\./, "_100.");
-    if (!thumbUrls.includes(thumbUrl)) {
-      thumbUrls.push(thumbUrl);
-    }
-  }
-
-  // Fetch thumbnails in parallel
-  const thumbResults = await Promise.allSettled(
-    thumbUrls.slice(0, MAX_THUMBNAILS).map((url) => fetchImageBytes(url))
-  );
-  for (const result of thumbResults) {
-    if (result.status === "fulfilled") {
-      thumbnailByteArrays.push(result.value);
+    if (!thumbnailUrls.includes(thumbUrl)) {
+      thumbnailUrls.push(thumbUrl);
     }
   }
 
@@ -71,8 +50,8 @@ export async function mapProductToFields(
     brandName: product.brand || "",
     productTitle: product.title || "",
     modelNumber: product.modelNumber ? `Model# ${product.modelNumber}` : "",
-    imageBytes,
-    thumbnailByteArrays,
+    imageUrl,
+    thumbnailUrls: thumbnailUrls.slice(0, MAX_THUMBNAILS),
     badge1Text: product.badges?.[0] ?? null,
     badge2Text: product.badges?.[1] ?? null,
     starFillStates,

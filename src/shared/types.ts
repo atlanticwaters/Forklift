@@ -82,8 +82,8 @@ export interface ProductPodFields {
   brandName: string;
   productTitle: string;
   modelNumber: string;
-  imageBytes: number[] | null;
-  thumbnailByteArrays: Array<number[]>; // up to 5 gallery thumbnails
+  imageUrl: string | null;
+  thumbnailUrls: string[]; // up to 5 gallery thumbnail URLs
   badge1Text: string | null;
   badge2Text: string | null;
   starFillStates: Array<"0" | "50" | "100">; // 5 entries

@@ -59,7 +59,8 @@ function collectTextNodes(node: SceneNode, results: TextNode[]): void {
 }
 
 /**
- * Find the image fill node: Product Media > Image.
+ * Find the image fill node: Product Media > Image > Image.
+ * The outer "Image" is a container; the inner "Image" child holds the actual fill.
  */
 export function findImageFillNode(
   root: SceneNode & ChildrenMixin
@@ -67,21 +68,27 @@ export function findImageFillNode(
   const mediaFrame = findChildByName(root, LAYER_NAMES.PRODUCT_MEDIA);
   if (!mediaFrame || !("children" in mediaFrame)) return null;
 
-  const imageNode = findChildByName(
+  // Find the outer Image container
+  const outerImage = findChildByName(
     mediaFrame as SceneNode & ChildrenMixin,
     LAYER_NAMES.IMAGE
   );
+  if (!outerImage || !("children" in outerImage)) return null;
 
-  if (imageNode && "fills" in imageNode) {
-    return imageNode as unknown as GeometryMixin;
+  // Find the inner Image child that holds the fill
+  const innerImage = findChildByName(
+    outerImage as SceneNode & ChildrenMixin,
+    LAYER_NAMES.IMAGE
+  );
+  if (innerImage && "fills" in innerImage) {
+    return innerImage as unknown as GeometryMixin;
   }
 
-  // Fallback: first child with fills
-  if ("children" in mediaFrame) {
-    for (const child of (mediaFrame as unknown as FrameNode).children) {
-      if ("fills" in child) return child as unknown as GeometryMixin;
-    }
+  // Fallback to outer Image if no nested child
+  if ("fills" in outerImage) {
+    return outerImage as unknown as GeometryMixin;
   }
+
   return null;
 }
 
@@ -184,9 +191,8 @@ export function findSelectedProductPods(): InstanceNode[] {
   for (const node of selection) {
     if (isProductPodInstance(node)) {
       pods.push(node);
-    }
-    // Also check children if a frame is selected
-    if ("children" in node) {
+    } else if ("children" in node) {
+      // Only walk into children for non-pod containers (e.g. frames)
       walkTree(node as SceneNode & ChildrenMixin, pods);
     }
   }

@@ -1,11 +1,11 @@
 import { findImageFillNode, findThumbnailFillNodes } from "./nodeTraversal";
 
 /**
- * Create a Figma image from raw bytes and return the IMAGE fill paint.
+ * Use figma.createImageAsync to load an image from a URL.
+ * This fetches through Figma's infrastructure, bypassing CORS entirely.
  */
-function createImageFill(imageBytes: number[]): ImagePaint {
-  const bytes = new Uint8Array(imageBytes);
-  const image = figma.createImage(bytes);
+async function createImageFillFromUrl(url: string): Promise<ImagePaint> {
+  const image = await figma.createImageAsync(url);
   return {
     type: "IMAGE",
     scaleMode: "FILL",
@@ -21,29 +21,35 @@ function applyFillToNode(node: GeometryMixin, fill: ImagePaint): void {
 }
 
 /**
- * Apply image bytes to the hero Product Image layer (Product Media > Image).
+ * Fetch and apply an image to the hero Product Image layer (Product Media > Image).
  */
 export async function setHeroImageFill(
   root: SceneNode & ChildrenMixin,
-  imageBytes: number[]
+  imageUrl: string
 ): Promise<void> {
   const fillNode = findImageFillNode(root);
   if (!fillNode) return;
-  applyFillToNode(fillNode, createImageFill(imageBytes));
+  const fill = await createImageFillFromUrl(imageUrl);
+  applyFillToNode(fillNode, fill);
 }
 
 /**
- * Apply image bytes to the SKU thumbnail tiles (up to 5).
- * Each entry in `thumbnailByteArrays` corresponds to one tile slot.
+ * Fetch and apply images to the SKU thumbnail tiles (up to 5).
+ * Each entry in `thumbnailUrls` corresponds to one tile slot.
  */
 export async function setThumbnailFills(
   root: SceneNode & ChildrenMixin,
-  thumbnailByteArrays: Array<number[]>
+  thumbnailUrls: string[]
 ): Promise<void> {
   const tileNodes = findThumbnailFillNodes(root);
-  const count = Math.min(tileNodes.length, thumbnailByteArrays.length);
+  const count = Math.min(tileNodes.length, thumbnailUrls.length);
   for (let i = 0; i < count; i++) {
-    applyFillToNode(tileNodes[i], createImageFill(thumbnailByteArrays[i]));
+    try {
+      const fill = await createImageFillFromUrl(thumbnailUrls[i]);
+      applyFillToNode(tileNodes[i], fill);
+    } catch {
+      // Skip thumbnails that fail to load
+    }
   }
 }
 
