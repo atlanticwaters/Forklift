@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useRef, memo } from "react";
-// @ts-ignore — esbuild resolves .svg imports as data URLs
-import forkliftLoadedSrc from "../forklift.svg";
-// @ts-ignore
-import forkliftEmptySrc from "../forklift_empty.svg";
+import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
+// @ts-ignore — esbuild resolves .riv imports as data URLs
+import forkliftRiv from "../forklift_loader.riv";
 
 interface Props {
   state: "idle" | "loading" | "success" | "error";
@@ -10,86 +9,36 @@ interface Props {
   onDismiss: () => void;
 }
 
-const ICON_SIZE = 23;
-const OFFSCREEN_LEFT = `${-(ICON_SIZE + 4)}px`;
-const CYCLE_DURATION = "3.2s";
-
-const ANIMATION_CSS = `
-@keyframes forklift-empty-lr {
-  0%   { left: ${OFFSCREEN_LEFT}; }
-  45%  { left: 100%; }
-  100% { left: 100%; }
-}
-@keyframes forklift-loaded-rl {
-  0%   { left: 100%; }
-  50%  { left: 100%; }
-  95%  { left: ${OFFSCREEN_LEFT}; }
-  100% { left: ${OFFSCREEN_LEFT}; }
-}
-@keyframes forklift-exit-left {
-  0%   { left: 50%; }
-  100% { left: ${OFFSCREEN_LEFT}; }
-}
-`;
-
-let cssInjected = false;
-function injectCSS() {
-  if (cssInjected) return;
-  const style = document.createElement("style");
-  style.textContent = ANIMATION_CSS;
-  document.head.appendChild(style);
-  cssInjected = true;
-}
-
 type InternalPhase = "idle" | "loading" | "completing" | "success" | "error";
 
-/**
- * Pure animation component — only re-renders when phase changes,
- * not when the status message text updates.
- */
 const ForkliftAnimation = memo(function ForkliftAnimation({
   phase,
 }: {
   phase: InternalPhase;
 }) {
+  const { rive, RiveComponent } = useRive({
+    src: forkliftRiv,
+    autoplay: false,
+    layout: new Layout({
+      fit: Fit.Contain,
+      alignment: Alignment.Center,
+    }),
+  });
+
   useEffect(() => {
-    injectCSS();
-  }, []);
+    if (!rive) return;
+    if (phase === "loading") {
+      rive.play();
+    } else {
+      rive.pause();
+    }
+  }, [rive, phase]);
 
   if (phase !== "loading" && phase !== "completing") return null;
 
   return (
     <div style={styles.track}>
-      {phase === "loading" && (
-        <>
-          <img
-            src={forkliftEmptySrc}
-            alt=""
-            style={{
-              ...styles.forkliftIcon,
-              animation: `forklift-empty-lr ${CYCLE_DURATION} ease-in-out infinite`,
-            }}
-          />
-          <img
-            src={forkliftLoadedSrc}
-            alt=""
-            style={{
-              ...styles.forkliftIcon,
-              animation: `forklift-loaded-rl ${CYCLE_DURATION} ease-in-out infinite`,
-            }}
-          />
-        </>
-      )}
-      {phase === "completing" && (
-        <img
-          src={forkliftLoadedSrc}
-          alt=""
-          style={{
-            ...styles.forkliftIcon,
-            animation: "forklift-exit-left 0.8s ease-in forwards",
-          }}
-        />
-      )}
+      <RiveComponent style={styles.riveCanvas} />
     </div>
   );
 });
@@ -183,14 +132,12 @@ const styles = {
   track: {
     position: "relative" as const,
     width: "100%",
-    height: "27px",
+    height: "40px",
     overflow: "hidden",
   },
-  forkliftIcon: {
-    position: "absolute" as const,
-    top: "2px",
-    height: `${ICON_SIZE}px`,
-    width: `${ICON_SIZE}px`,
+  riveCanvas: {
+    width: "100%",
+    height: "100%",
   },
   statusBar: {
     fontSize: "11px",

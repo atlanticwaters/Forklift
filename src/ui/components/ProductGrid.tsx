@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import type { CatalogProduct } from "../../shared/types";
 import { ProductCard } from "./ProductCard";
+import { RiveLoader } from "./RiveLoader";
 
 interface Props {
   products: CatalogProduct[];
@@ -31,7 +32,7 @@ export function ProductGrid({
   }, []);
 
   if (loading) {
-    return <div style={styles.message}>Loading products...</div>;
+    return <RiveLoader message="Loading products..." />;
   }
 
   if (products.length === 0) {

@@ -10,6 +10,7 @@ import { StatusBar } from "./components/StatusBar";
 import { DepartmentList } from "./components/DepartmentList";
 import { CategoryList } from "./components/CategoryList";
 import { ProductGrid } from "./components/ProductGrid";
+import { RiveLoader } from "./components/RiveLoader";
 
 interface NavState {
   level: "departments" | "categories" | "subcategories" | "products";
@@ -182,9 +183,7 @@ export function App() {
 
       {/* Content area */}
       <div style={styles.content}>
-        {catLoading && (
-          <div style={styles.center}>Loading categories...</div>
-        )}
+        {catLoading && <RiveLoader message="Loading categories..." />}
         {catError && (
           <div style={{ ...styles.center, color: "#c00" }}>{catError}</div>
         )}
