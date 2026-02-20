@@ -1,31 +1,24 @@
 import React from "react";
-import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
-// @ts-ignore — esbuild resolves .riv imports as data URLs
-import forkliftRiv from "../forklift_loader.riv";
 
 interface Props {
   message?: string;
 }
 
 export function RiveLoader({ message }: Props) {
-  const { RiveComponent } = useRive({
-    src: forkliftRiv,
-    autoplay: true,
-    layout: new Layout({
-      fit: Fit.Contain,
-      alignment: Alignment.Center,
-    }),
-  });
-
   return (
     <div style={styles.container}>
-      <div style={styles.canvasWrap}>
-        <RiveComponent style={styles.canvas} />
-      </div>
+      <div style={styles.spinner} />
       {message && <div style={styles.message}>{message}</div>}
+      <style>{keyframes}</style>
     </div>
   );
 }
+
+const keyframes = `
+@keyframes forklift-spin {
+  to { transform: rotate(360deg); }
+}
+`;
 
 const styles = {
   container: {
@@ -34,15 +27,15 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     padding: "24px",
-    gap: "8px",
+    gap: "12px",
   },
-  canvasWrap: {
-    width: "80px",
-    height: "80px",
-  },
-  canvas: {
-    width: "100%",
-    height: "100%",
+  spinner: {
+    width: "28px",
+    height: "28px",
+    border: "3px solid #e5e5e5",
+    borderTopColor: "#0d99ff",
+    borderRadius: "50%",
+    animation: "forklift-spin 0.7s linear infinite",
   },
   message: {
     fontSize: "11px",

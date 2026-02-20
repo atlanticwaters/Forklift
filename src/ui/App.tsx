@@ -10,8 +10,8 @@ import { StatusBar } from "./components/StatusBar";
 import { DepartmentList } from "./components/DepartmentList";
 import { CategoryList } from "./components/CategoryList";
 import { ProductGrid } from "./components/ProductGrid";
-import { RiveLoader } from "./components/RiveLoader";
-
+// @ts-ignore — esbuild resolves .svg imports as data URLs
+import forkliftSvg from "./forklift.svg";
 interface NavState {
   level: "departments" | "categories" | "subcategories" | "products";
   department?: CategoryNode;
@@ -164,11 +164,25 @@ export function App() {
     <div style={styles.root}>
       {/* Header */}
       <div style={styles.header}>
-        <div style={styles.title}>Forklift</div>
-        <div style={styles.selectionInfo}>
-          {selection.hasProductPods
-            ? `${selection.count} pod${selection.count > 1 ? "s" : ""} selected`
-            : "Select a Product Pod"}
+        <div>
+          <div style={styles.title}>Forklift</div>
+          <div style={styles.selectionInfo}>
+            {selection.hasProductPods
+              ? `${selection.count} pod${selection.count > 1 ? "s" : ""} selected`
+              : "Select a Product Pod"}
+          </div>
+        </div>
+        <div style={styles.iconWrap}>
+          {(status.state === "loading") && (
+            <span style={styles.pulseRing} />
+          )}
+          <img src={forkliftSvg} alt="Forklift" style={styles.headerIcon} />
+          <style>{`
+            @keyframes header-pulse-ring {
+              0% { transform: scale(0.8); opacity: 0.6; }
+              100% { transform: scale(2); opacity: 0; }
+            }
+          `}</style>
         </div>
       </div>
 
@@ -176,6 +190,7 @@ export function App() {
       <StatusBar
         state={status.state}
         message={status.message}
+        progress={status.progress}
         onDismiss={resetStatus}
       />
 
@@ -183,7 +198,13 @@ export function App() {
 
       {/* Content area */}
       <div style={styles.content}>
-        {catLoading && <RiveLoader message="Loading categories..." />}
+        {catLoading && (
+          <div style={styles.center}>
+            <div style={styles.spinner} />
+            <div style={{ marginTop: "8px" }}>Loading categories...</div>
+            <style>{`@keyframes forklift-spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
         {catError && (
           <div style={{ ...styles.center, color: "#c00" }}>{catError}</div>
         )}
@@ -238,8 +259,33 @@ const styles = {
     background: "#fff",
   },
   header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: "12px",
     borderBottom: "1px solid #e5e5e5",
+  },
+  iconWrap: {
+    position: "relative" as const,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "36px",
+    height: "36px",
+    flexShrink: 0,
+  },
+  pulseRing: {
+    position: "absolute" as const,
+    width: "30px",
+    height: "30px",
+    borderRadius: "50%",
+    background: "rgba(255, 149, 0, 0.25)",
+    animation: "header-pulse-ring 1.4s ease-out infinite",
+  },
+  headerIcon: {
+    position: "relative" as const,
+    width: "32px",
+    height: "32px",
   },
   title: {
     fontSize: "15px",
@@ -256,9 +302,21 @@ const styles = {
     overflowY: "auto" as const,
   },
   center: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
     padding: "24px",
     textAlign: "center" as const,
     color: "#999",
     fontSize: "12px",
+  },
+  spinner: {
+    width: "28px",
+    height: "28px",
+    border: "3px solid #e5e5e5",
+    borderTopColor: "#0d99ff",
+    borderRadius: "50%",
+    animation: "forklift-spin 0.7s linear infinite",
   },
 };

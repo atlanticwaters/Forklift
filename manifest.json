@@ -9,7 +9,9 @@
     "allowedDomains": [
       "https://atlanticwaters.github.io",
       "https://images.thdstatic.com",
-      "https://*.thdstatic.com"
+      "https://*.thdstatic.com",
+      "https://unpkg.com",
+      "https://cdn.jsdelivr.net"
     ]
   }
 }

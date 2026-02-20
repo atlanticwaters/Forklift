@@ -26,7 +26,7 @@ const uiOptions = {
   platform: "browser",
   jsx: "automatic",
   jsxImportSource: "react",
-  loader: { ".svg": "dataurl", ".riv": "dataurl" },
+  loader: { ".svg": "dataurl" },
   define: {
     "process.env.NODE_ENV": '"production"',
   },

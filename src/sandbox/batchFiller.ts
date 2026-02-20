@@ -147,6 +147,13 @@ export async function populateSingle(
   }
 
   try {
+    const progressMsg: PluginMessage = {
+      type: "populate-progress",
+      current: 1,
+      total: 1,
+    };
+    figma.ui.postMessage(progressMsg);
+
     await fillPod(pods[0], fields);
     const msg: PluginMessage = { type: "populate-success", count: 1 };
     figma.ui.postMessage(msg);

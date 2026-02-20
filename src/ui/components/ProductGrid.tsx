@@ -89,6 +89,9 @@ const styles = {
     fontSize: "12px",
   },
   batchBar: {
+    position: "sticky" as const,
+    top: 0,
+    zIndex: 10,
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
